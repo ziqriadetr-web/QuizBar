@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Kuis seru tentang kegiatan sekolah dan sehari-hari. Dibuat oleh Albar.">
+<title>Kuis Seru Sekolah & Sehari-hari - oleh Albar</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --benar: #22c55e;
+    --salah: #ef4444;
+    --border: #334155;
+    --kredit: #fbbf24;
+  }
+  [data-theme="light"] {
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #0284c7;
+    --border: #e2e8f0;
+    --kredit: #d97706;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+    transition: background 0.3s, color 0.3s;
+  }
+  .container { width: 100%; max-width: 600px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  h1 { font-size: 1.3rem; color: var(--accent); line-height: 1.2; }
+  h1 small { display: block; font-size: 0.72rem; color: var(--kredit); font-weight: 600; margin-top: 4px; letter-spacing: 0.5px; }
+  .sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
+  .theme-btn {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 10px; border-radius: 8px;
+    cursor: pointer; font-size: 1rem;
+  }
+  .progress-wrap { margin-bottom: 8px; }
+  .progress-bar {
+    height: 6px; background: var(--card); border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent); width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text { font-size: 0.75rem; color: var(--muted); margin-top: 4px; text-align: right; }
+  .card {
+    background: var(--card); border-radius: 12px;
+    padding: 20px; margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .card h2 { font-size: 0.95rem; color: var(--muted); font-weight: 600; }
+  .skor-mini { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
+  .pertanyaan {
+    font-size: 1rem; line-height: 1.5; margin-bottom: 16px;
+    color: var(--text); font-weight: 600;
+  }
+  .opsi { display: flex; flex-direction: column; gap: 10px; }
+  .opsi button {
+    text-align: left;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.1s, border-color 0.2s, background 0.2s;
+    font-family: inherit;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+  }
+  .opsi button:hover:not(:disabled) { border-color: var(--accent); }
+  .opsi button:active:not(:disabled) { transform: scale(0.99); }
+  .opsi button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .opsi button:disabled { cursor: not-allowed; }
+  .opsi button .abjad {
+    font-weight: 700; color: var(--accent); flex-shrink: 0;
+    width: 20px;
+  }
+  .opsi button.benar { background: rgba(34,197,94,0.15); border-color: var(--benar); }
+  .opsi button.salah { background: rgba(239,68,68,0.15); border-color: var(--salah); }
+  .opsi button.benar .abjad { color: var(--benar); }
+  .opsi button.salah .abjad { color: var(--salah); }
+  .pembahasan {
+    margin-top: 14px; padding: 12px; border-radius: 8px;
+    font-size: 0.88rem; line-height: 1.5; display: none;
+    background: rgba(56,189,248,0.1); border: 1px solid var(--accent);
+  }
+  .pembahasan strong { display: block; margin-bottom: 4px; color: var(--accent); }
+  .btn-next {
+    background: var(--accent); color: #0f172a;
+    width: 100%; margin-top: 14px; padding: 13px;
+    border: none; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; display: none; font-family: inherit;
+  }
+  .btn-next:active { transform: scale(0.98); }
+  .hasil { text-align: center; display: none; }
+  .hasil .skor { font-size: 3.5rem; font-weight: 800; color: var(--accent); }
+  .hasil .dari { font-size: 1rem; color: var(--muted); margin-top: -8px; }
+  .hasil p { margin: 14px 0 20px; color: var(--muted); line-height: 1.5; }
+  .rekap { text-align: left; margin: 16px 0; font-size: 0.85rem; max-height: 300px; overflow-y: auto; }
+  .rekap-item {
+    display: flex; justify-content: space-between; gap: 8px;
+    padding: 8px 10px; border-radius: 6px;
+    background: var(--bg); margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .rekap-item .status { font-weight: 700; flex-shrink: 0; }
+  .rekap-item .status.benar { color: var(--benar); }
+  .rekap-item .status.salah { color: var(--salah); }
+  .hasil-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-restart, .btn-share {
+    flex: 1; min-width: 140px; padding: 13px;
+    border: none; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn-restart { background: var(--accent); color: #0f172a; }
+  .btn-share { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .footer { text-align: center; font-size: 0.72rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  .footer strong { color: var(--kredit); }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--benar); color: white; padding: 10px 20px;
+    border-radius: 8px; font-size: 0.9rem; opacity: 0;
+    transition: opacity 0.3s; pointer-events: none;
+    max-width: 90%; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎒 Kuis Seru Sekolah & Sehari-hari
+      <small>DIBUAT OLEH ALBAR</small>
+    </h1>
+    <button class="theme-btn" id="btnTheme" aria-label="Ganti tema">🌙</button>
+  </div>
+  <p class="sub">15 soal pilihan ganda. Jawab dengan santai, lihat pembahasannya!</p>
+
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="progress-text" id="progressText">Soal 1 / 15</div>
+  </div>
+
+  <div id="kuis">
+    <div class="card">
+      <div class="card-header">
+        <h2 id="nomor">Soal 1</h2>
+        <div class="skor-mini" id="skorMini">Benar: 0</div>
+      </div>
+      <div class="pertanyaan" id="pertanyaan" aria-live="polite"></div>
+      <div class="opsi" id="opsi"></div>
+      <div class="pembahasan" id="pembahasan" aria-live="polite"></div>
+      <button class="btn-next" id="btnNext">Soal Berikutnya →</button>
+    </div>
+  </div>
+
+  <div class="card hasil" id="hasil">
+    <div class="skor" id="skorAkhir">0/15</div>
+    <div class="dari">jawaban benar</div>
+    <p id="pesanAkhir"></p>
+    <div class="rekap" id="rekap"></div>
+    <div class="hasil-btns">
+      <button class="btn-share" id="btnShare">📤 Bagikan Skor</button>
+      <button class="btn-restart" id="btnRestart">🔄 Ulangi</button>
+    </div>
+  </div>
+
+  <div class="footer">Kuis ini dibuat oleh <strong>Albar</strong> 📚<br>15 soal tentang kegiatan sekolah & keseharian</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const bankSoal = [
+  {
+    q: "Setiap pagi sebelum berangkat sekolah, hal pertama yang sebaiknya dilakukan adalah...",
+    opsi: ["Langsung main HP", "Sarapan & mandi", "Tidur lagi", "Nonton TV"],
+    jawab: 1,
+    bahas: "Sarapan dan mandi membuat tubuh segar dan siap belajar. Jangan lupa cek jadwal pelajaran!"
+  },
+  {
+    q: "Jika bertemu guru di lorong sekolah, sikap yang baik adalah...",
+    opsi: ["Pura-pura tidak lihat", "Menyapa & memberi salam", "Kabur ke kelas", "Diam saja"],
+    jawab: 1,
+    bahas: "Menyapa dan memberi salam adalah tanda sopan santun yang penting di sekolah."
+  },
+  {
+    q: "PR (Pekerjaan Rumah) sebaiknya dikerjakan kapan?",
+    opsi: ["Pagi di sekolah sebelum masuk", "Malam sebelum tidur", "Setelah pulang sekolah / sore", "Tidak perlu dikerjakan"],
+    jawab: 2,
+    bahas: "Mengerjakan PR setelah pulang sekolah saat masih segar membuat hasil lebih baik dan tidak terburu-buru."
+  },
+  {
+    q: "Kamu lupa membawa buku PR. Sikap yang benar adalah...",
+    opsi: ["Diam saja & berharap tidak ditanya", "Jujur bilang ke guru & minta maaf", "Pinjam buku teman tanpa izin", "Bilang bukunya hilang padahal tidak"],
+    jawab: 1,
+    bahas: "Kejujuran lebih dihargai daripada berbohong. Minta maaf dan berjanji tidak mengulang."
+  },
+  {
+    q: "Alat tulis yang biasa dipakai untuk menghapus tulisan pensil adalah...",
+    opsi: ["Penggaris", "Pensil warna", "Penghapus", "Spidol"],
+    jawab: 2,
+    bahas: "Penghapus (eraser) khusus untuk menghapus tulisan pensil."
+  },
+  {
+    q: "Saat jam istirahat, sebaiknya kita...",
+    opsi: ["Jajan & makan dengan tenang", "Berlari-lari di kelas", "Mengganggu teman", "Tidur di lantai"],
+    jawab: 0,
+    bahas: "Istirahat dipakai untuk makan, minum, dan bersantai agar siap belajar lagi."
+  },
+  {
+    q: "Uang jajan sebaiknya digunakan untuk...",
+    opsi: ["Beli mainan mahal", "Ditabung & beli kebutuhan", "Dihabiskan untuk top-up game", "Dipinjamkan semua ke teman"],
+    jawab: 1,
+    bahas: "Menabung penting! Sisihkan sebagian uang jajan, jangan dihabiskan semua."
+  },
+  {
+    q: "Jika ada teman yang diejek dan sedih, sebaiknya kamu...",
+    opsi: ["Ikut menertawakan", "Diamkan saja", "Menghibur & membela", "Menyebarkan ke teman lain"],
+    jawab: 2,
+    bahas: "Membela teman yang diejek adalah sikap baik. Perundungan (bullying) tidak boleh dibiarkan."
+  },
+  {
+    q: "Sebelum tidur malam di hari sekolah, sebaiknya...",
+    opsi: ["Main HP sampai jam 2 pagi", "Siapkan buku & seragam untuk besok", "Nonton film maraton", "Makan banyak camilan"],
+    jawab: 1,
+    bahas: "Menyiapkan perlengkapan sekolah malam sebelumnya membuat pagi tidak terburu-buru."
+  },
+  {
+    q: "Di kelas, saat guru sedang menjelaskan, kamu sebaiknya...",
+    opsi: ["Mengobrol dengan teman", "Mendengarkan & mencatat", "Main game di HP", "Tidur di meja"],
+    jawab: 1,
+    bahas: "Mendengarkan dan mencatat membantu memahami pelajaran dan menghormati guru."
+  },
+  {
+    q: "Jika kamu tidak paham pelajaran, sebaiknya...",
+    opsi: ["Diam saja sampai ujian", "Bertanya ke guru atau teman", "Menyontek saat ujian", "Marah ke diri sendiri"],
+    jawab: 1,
+    bahas: "Bertanya adalah cara belajar yang baik. Tidak ada yang salah dengan tidak tahu."
+  },
+  {
+    q: "Membersihkan kelas (piket) sebaiknya dilakukan...",
+    opsi: ["Hanya oleh ketua kelas", "Bersama-sama sesuai jadwal", "Saat ada guru saja", "Tidak perlu karena ada petugas"],
+    jawab: 1,
+    bahas: "Piket kelas adalah tanggung jawab bersama. Kelas bersih membuat belajar nyaman."
+  },
+  {
+    q: "Kamu melihat uang jatuh di lantai sekolah. Sikap yang benar adalah...",
+    opsi: ["Ambil & simpan sendiri", "Ambil & serahkan ke guru", "Biarkan saja", "Bagi dengan teman"],
+    jawab: 1,
+    bahas: "Serahkan ke guru agar bisa dikembalikan ke pemiliknya. Kejujuran adalah sikap terpuji."
+  },
+  {
+    q: "Berapa jam tidur yang baik untuk pelajar?",
+    opsi: ["3-4 jam", "5-6 jam", "8-9 jam", "12 jam"],
+    jawab: 2,
+    bahas: "Pelajar butuh 8-9 jam tidur agar tubuh segar dan otak siap belajar."
+  },
+  {
+    q: "Sebelum berangkat ke sekolah, sebaiknya kamu memeriksa...",
+    opsi: ["Jadwal pelajaran & buku", "Boneka koleksi", "Sepatu baru teman", "Cuaca di luar negeri"],
+    jawab: 0,
+    bahas: "Cek jadwal dan buku agar tidak ada yang tertinggal dan siap belajar."
+  }
+];
+
+let soal = [];
+let index = 0, benar = 0;
+let jawabanUser = [];
+
+const el = id => document.getElementById(id);
+const pertanyaanEl = el('pertanyaan'), opsiEl = el('opsi'), nomorEl = el('nomor');
+const pembahasanEl = el('pembahasan'), btnNext = el('btnNext');
+const progressEl = el('progress'), progressText = el('progressText');
+const kuisEl = el('kuis'), hasilEl = el('hasil'), skorMini = el('skorMini');
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showToast(msg) {
+  const t = el('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function tampilkanSoal() {
+  const s = soal[index];
+  nomorEl.textContent = `Soal ${index + 1}`;
+  skorMini.textContent = `Benar: ${benar}`;
+  pertanyaanEl.textContent = s.q;
+
+  const abjad = ['A', 'B', 'C', 'D'];
+  opsiEl.innerHTML = '';
+  s.opsi.forEach((teks, i) => {
+    const btn = document.createElement('button');
+    btn.innerHTML = `<span class="abjad">${abjad[i]}</span><span>${teks}</span>`;
+    btn.setAttribute('aria-label', `Pilihan ${abjad[i]}: ${teks}`);
+    btn.addEventListener('click', () => jawab(i));
+    opsiEl.appendChild(btn);
+  });
+
+  pembahasanEl.style.display = 'none';
+  pembahasanEl.innerHTML = '';
+  btnNext.style.display = 'none';
+  progressEl.style.width = `${(index / soal.length) * 100}%`;
+  progressText.textContent = `Soal ${index + 1} / ${soal.length}`;
+}
+
+function jawab(pilihan) {
+  const s = soal[index];
+  const benarJawab = pilihan === s.jawab;
+  if (benarJawab) benar++;
+  skorMini.textContent = `Benar: ${benar}`;
+
+  jawabanUser.push({ soal: s, jawaban: pilihan, benar: benarJawab });
+
+  const tombol = opsiEl.querySelectorAll('button');
+  tombol.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === s.jawab) btn.classList.add('benar');
+    else if (i === pilihan) btn.classList.add('salah');
+  });
+
+  pembahasanEl.style.display = 'block';
+  pembahasanEl.innerHTML = `<strong>${benarJawab ? '✅ Benar!' : '❌ Belum tepat.'}</strong>${s.bahas}`;
+
+  btnNext.style.display = 'block';
+  btnNext.focus();
+}
+
+function lanjut() {
+  index++;
+  if (index < soal.length) tampilkanSoal();
+  else tampilkanHasil();
+}
+
+function tampilkanHasil() {
+  progressEl.style.width = '100%';
+  progressText.textContent = 'Selesai!';
+  kuisEl.style.display = 'none';
+  hasilEl.style.display = 'block';
+  el('skorAkhir').textContent = `${benar}/${soal.length}`;
+
+  let msg;
+  const persen = benar / soal.length;
+  if (persen === 1) msg = 'Sempurna! Kamu juara kegiatan sekolah & sehari-hari! 🏆';
+  else if (persen >= 0.8) msg = 'Hebat! Pengetahuanmu tentang kegiatan sehari-hari sangat baik. 🌟';
+  else if (persen >= 0.6) msg = 'Bagus! Terus tingkatkan ya. 👍';
+  else if (persen >= 0.4) msg = 'Lumayan, masih bisa lebih baik lagi. Semangat! 💪';
+  else msg = 'Jangan menyerah! Coba baca pembahasan dan ulangi kuisnya. 📚';
+  el('pesanAkhir').textContent = msg;
+
+  el('rekap').innerHTML = jawabanUser.map((j, i) => {
+    const ikon = j.benar ? '✅' : '❌';
+    const status = j.benar ? 'benar' : 'salah';
+    const jawabTeks = j.soal.opsi[j.jawaban];
+    const jawabBenar = j.soal.opsi[j.soal.jawab];
+    const detail = j.benar ? '' : ` <br><small style="color:var(--muted)">Jawabanmu: ${jawabTeks} • Benar: ${jawabBenar}</small>`;
+    return `<div class="rekap-item">
+      <span>${i + 1}. ${j.soal.q}${detail}</span>
+      <span class="status ${status}">${ikon}</span>
+    </div>`;
+  }).join('');
+}
+
+async function shareSkor() {
+  const teks = `Aku dapat skor ${benar}/${soal.length} di Kuis Seru Sekolah & Sehari-hari buatan Albar! 🎒 Coba juga!`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Kuis Seru oleh Albar', text: teks });
+    } catch (e) { /* batal */ }
+  } else {
+    try {
+      await navigator.clipboard.writeText(teks);
+      showToast('Skor disalin ke clipboard!');
+    } catch (e) {
+      showToast('Gagal menyalin. Salin manual: ' + teks);
+    }
+  }
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('kuis-albar-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    el('btnTheme').textContent = '☀️';
+  }
+}
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    document.documentElement.removeAttribute('data-theme');
+    el('btnTheme').textContent = '🌙';
+    localStorage.setItem('kuis-albar-theme', 'dark');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    el('btnTheme').textContent = '☀️';
+    localStorage.setItem('kuis-albar-theme', 'light');
+  }
+}
+
+function mulaiUlang() {
+  soal = shuffle(bankSoal); // 15 soal, diacak tiap sesi
+  index = 0;
+  benar = 0;
+  jawabanUser = [];
+  hasilEl.style.display = 'none';
+  kuisEl.style.display = 'block';
+  tampilkanSoal();
+}
+
+btnNext.addEventListener('click', lanjut);
+el('btnRestart').addEventListener('click', mulaiUlang);
+el('btnShare').addEventListener('click', shareSkor);
+el('btnTheme').addEventListener('click', toggleTheme);
+
+initTheme();
+mulaiUlang();
+</script>
+</body>
+</html>
